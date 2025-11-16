@@ -6,6 +6,16 @@
 <img width="1399" height="354" alt="image" src="https://github.com/user-attachments/assets/283f5dc8-b977-4597-bc9f-6a8abb01cdfa" />
 
 
+## 🆕 2025-11-16 更新
+
+- 兼容 **神医插件/Emby 识别** 场景：`server.js` 与 `worker.js` 新增 `rewriteTmdbConfigImages`，会自动把 `/3/configuration*` 中的 `images.base_url / secure_base_url` 重写为代理域名下的 `/t/p/`，搜索结果缩图将直接命中代理。
+- Node 版本放宽 `Cross-Origin-Resource-Policy`，Cloudflare Workers 也同步在 `corsHeaders` 里设置 `cross-origin`，保证前端可跨站加载图片，不再出现破图。
+- Cloudflare Workers 版本同样复用新的 CORS 头
+
+<img width="1306" height="922" alt="image" src="https://github.com/user-attachments/assets/297f6361-7f0c-4e7f-b447-1c409e632b9b" />
+<img width="1177" height="620" alt="image" src="https://github.com/user-attachments/assets/c901411b-73b9-4c24-8026-79cd5040c900" />
+
+
 🎬 基于 Cloudflare Workers 的 TMDB (The Movie Database) 代理服务，提供图片和 API 代理功能，具备安全伪装、智能缓存和全球 CDN 加速。
 
 ## ✨ 功能特性
