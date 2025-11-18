@@ -5,6 +5,8 @@
 
 <img width="1399" height="354" alt="image" src="https://github.com/user-attachments/assets/283f5dc8-b977-4597-bc9f-6a8abb01cdfa" />
 
+2025-11-18 MP更新认证资源版本2.4.3不然会报错
+
 
 ## 🆕 2025-11-16 更新
 
