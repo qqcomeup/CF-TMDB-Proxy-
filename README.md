@@ -81,7 +81,7 @@ wrangler deploy
 - `wrangler.toml` - Wrangler 配置文件
 - `package.json` - 项目配置文件
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qqcomeup/cf-tmdb)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/qqcomeup/CF-TMDB-Proxy-)
 
 如果遇到 "找不到 wrangler.toml 文件" 的错误，请先将本项目的所有文件上传到你的 GitHub 仓库。
 
@@ -192,6 +192,26 @@ curl -H "X-API-Key: your_tmdb_api_key" \
   "timestamp": "2024-01-01T00:00:00.000Z"
 }
 ```
+
+
+## MoviePilot 兼容性建议
+
+推荐在 MP 中配置：
+
+```env
+TMDB_API_DOMAIN=你的自定义域名
+TMDB_IMAGE_DOMAIN=你的自定义域名
+TMDB_API_KEY=你的 TMDB v3 API Key
+```
+
+并在安全域名 / SECURITY_IMAGE_DOMAINS 中加入该自定义域名。
+
+本分支补强点：
+- 不再拦截 `/3/*`、`/4/*`、`/t/p/*` 的 `python/curl/wget` User-Agent，避免误伤 MoviePilot 后端请求。
+- 支持 `Authorization: Bearer`，兼容 TMDB v4 Token。
+- `/3/configuration*` 会把 TMDB 图片域名重写到当前代理域名。
+- 图片代理不再手动透传 `Content-Length`，避免 Workers 压缩/优化后长度不一致。
+- API JSON 响应不再透传上游 `Content-Encoding`，避免已读取文本后重复编码标记。
 
 ## 📊 缓存策略
 
