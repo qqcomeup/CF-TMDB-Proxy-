@@ -29,9 +29,11 @@ export default {
       return new Response(null, { status: 200, headers: corsHeaders });
     }
 
-    // 从请求中获取API Key
-    const API_KEY = request.headers.get('X-API-Key') || 
-                   url.searchParams.get('api_key') || 
+    // 从请求中获取 API Key，兼容 TMDB v3 api_key 与 v4 Bearer Token。
+    const authHeader = request.headers.get('Authorization') || '';
+    const bearerToken = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : '';
+    const API_KEY = request.headers.get('X-API-Key') ||
+                   url.searchParams.get('api_key') ||
                    url.searchParams.get('key');
 
     // 增强安全检查
@@ -39,12 +41,13 @@ export default {
     const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
     const country = request.cf?.country || 'unknown';
 
-    // 检测恶意爬虫
-    const suspiciousUA = ['curl', 'wget', 'python', 'scrapy', 'spider'];
-    const isSuspicious = suspiciousUA.some(ua => userAgent.toLowerCase().includes(ua));
+    // 检测恶意爬虫：只保护根路径/管理路径，不拦截 /3/* 和 /t/p/*，避免误伤 MoviePilot 后端请求。
+    const protectedPath = pathname === '/' || pathname === '' || pathname.startsWith('/admin/');
+    const suspiciousUA = ['scrapy', 'spider'];
+    const lowerUA = userAgent.toLowerCase();
+    const isSuspicious = suspiciousUA.some(ua => lowerUA.includes(ua));
 
-    if ((userAgent.toLowerCase().includes('bot') && !userAgent.includes('googlebot')) || 
-        (isSuspicious && !userAgent.includes('Mozilla'))) {
+    if (protectedPath && ((lowerUA.includes('bot') && !lowerUA.includes('googlebot')) || isSuspicious)) {
       return new Response(getFake404HTML(), { status: 404, headers: { 'Content-Type': 'text/html', ...corsHeaders } });
     }
 
@@ -55,7 +58,7 @@ export default {
     }
 
     // 隐藏管理端点 - 需要有效的API Key
-    if (pathname === '/admin/status' && API_KEY && API_KEY.length === 32) {
+    if (pathname === '/admin/status' && ((API_KEY && API_KEY.length === 32) || bearerToken)) {
       return new Response(JSON.stringify({
         status: 'active',
         version: '2.0.0',
@@ -124,7 +127,6 @@ export default {
             'Cache-Control': 'public, max-age=604800, immutable', // 7天强缓存
             'ETag': response.headers.get('ETag'),
             'Last-Modified': response.headers.get('Last-Modified'),
-            'Content-Length': response.headers.get('Content-Length'),
             'Vary': 'Accept-Encoding',
             ...corsHeaders,
           },
@@ -137,10 +139,10 @@ export default {
       }
     }
 
-    // API代理 /3/*
-    if (pathname.startsWith('/3/')) {
+    // API代理 /3/* 和 /4/*
+    if (pathname.startsWith('/3/') || pathname.startsWith('/4/')) {
       // 检查是否提供了API Key
-      if (!API_KEY) {
+      if (!API_KEY && !bearerToken) {
         return new Response(getFake404HTML(), {
           status: 404,
           headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders },
@@ -150,17 +152,22 @@ export default {
       try {
         let apiUrl = `https://api.tmdb.org${pathname}${search}`;
 
-        if (!search.includes('api_key=')) {
+        if (!bearerToken && !search.includes('api_key=')) {
           const separator = search ? '&' : '?';
           apiUrl += `${separator}api_key=${API_KEY}`;
         }
 
+        const upstreamHeaders = {
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate, br'
+        };
+        if (bearerToken) {
+          upstreamHeaders.Authorization = `Bearer ${bearerToken}`;
+        }
+
         const response = await fetch(apiUrl, {
           method: request.method,
-          headers: { 
-            'Accept': 'application/json',
-            'Accept-Encoding': 'gzip, deflate, br'
-          },
+          headers: upstreamHeaders,
           cf: {
             cacheTtl: 300, // 5分钟缓存
             cacheEverything: true,
@@ -189,7 +196,6 @@ export default {
           headers: {
             'Content-Type': 'application/json',
             'Cache-Control': `public, max-age=${cacheTime}`,
-            'Content-Encoding': response.headers.get('Content-Encoding'),
             'Vary': 'Accept-Encoding',
             ...corsHeaders,
           },
