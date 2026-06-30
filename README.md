@@ -1,5 +1,35 @@
 # TMDB Proxy - Cloudflare Workers 版本 AI写的代码
 
+## 🆕 harden-mp-compat 分支更新说明
+
+本分支主要面向 MoviePilot 使用场景做兼容性和稳定性补强：
+
+- 放宽 User-Agent 拦截策略：`/3/*`、`/4/*`、`/t/p/*` 不再拦截 `python/curl/wget`，避免误伤 MoviePilot 后端请求。
+- 支持 TMDB v4 Token：可通过 `Authorization: Bearer <token>` 访问 `/3/*`、`/4/*` 和 `/admin/status`。
+- 扩展 API 代理范围：除 `/3/*` 外，新增 `/4/*` 代理。
+- 保留 `/3/configuration*` 图片域名重写逻辑，返回的 `images.base_url` / `secure_base_url` 会指向当前代理域名 `/t/p/`。
+- 图片代理响应不再手动透传 `Content-Length`，避免 Cloudflare Workers 图片优化或压缩后长度不一致。
+- API JSON 响应不再透传上游 `Content-Encoding`，避免 Worker 已读取文本后出现重复编码标记。
+- 修正 README 中 Cloudflare 一键部署链接，指向当前仓库。
+- 新增 MoviePilot 配置示例，说明 `TMDB_API_DOMAIN`、`TMDB_IMAGE_DOMAIN`、`TMDB_API_KEY` 和安全图片域名配置。
+
+建议测试：
+
+```bash
+curl https://你的域名/health
+curl "https://你的域名/3/configuration?api_key=你的TMDB_V3_KEY"
+curl -I "https://你的域名/t/p/w500/示例图片路径.jpg"
+```
+
+MoviePilot 推荐配置：
+
+```env
+TMDB_API_DOMAIN=你的域名
+TMDB_IMAGE_DOMAIN=你的域名
+TMDB_API_KEY=你的TMDB_V3_KEY
+```
+
+
 MP交流群：https://t.me/moviepilot_official （我是 咚咚咚）
 
 部署好绑定自己域名后 必须绑定自己域名 必须绑定自己域名 必须绑定自己域名 CF给的预览域名自带墙！
