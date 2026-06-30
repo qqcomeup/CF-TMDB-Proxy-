@@ -47,7 +47,7 @@ curl -I "https://你的域名/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg"
 - 图片代理不再手动透传 `Content-Length`，API JSON 不再透传上游 `Content-Encoding`。
 - 修正 Cloudflare 一键部署链接。
 
-<img width="1403" height="972" alt="image" src="https://github.com/user-attachments/assets/bd89a46f-806d-4626-980a-08b8ff38467c" />
+<img width="1417" height="319" alt="image" src="https://github.com/user-attachments/assets/edf1a74b-ba7e-4c33-9abb-de96249c30f6" />
 <img width="1378" height="1209" alt="image" src="https://github.com/user-attachments/assets/d194d295-93f5-487c-9efe-87d34f71f09b" />
 <img width="1177" height="620" alt="image" src="https://github.com/user-attachments/assets/c901411b-73b9-4c24-8026-79cd5040c900" />
 
