@@ -1,5 +1,10 @@
 # TMDB Proxy - Cloudflare Workers 版本 AI写的代码
 
+https://github.com/user-attachments/assets/d862ef34-a291-4c7f-aedc-62fd8d6410ac
+
+<img width="893" height="824" alt="image" src="https://github.com/user-attachments/assets/080ebd4a-5cf8-4e13-916b-d892e473418b" />
+
+
 ## MoviePilot 快速说明
 
 MP交流群：https://t.me/moviepilot_official （我是 咚咚咚）
