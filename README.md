@@ -18,7 +18,7 @@
 ```bash
 curl https://你的域名/health
 curl "https://你的域名/3/configuration?api_key=你的TMDB_V3_KEY"
-curl -I "https://你的域名/t/p/w500/示例图片路径.jpg"
+curl -I "https://你的域名/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg"
 ```
 
 MoviePilot 推荐配置：
@@ -119,12 +119,17 @@ wrangler deploy
 
 ### 图片代理
 
+> 注意：`poster.jpg` 只是占位符，不是 TMDB 真实图片路径，会返回 404。
+> 可以使用下面这个已知有效的 TMDB 图片路径快速判断图片代理是否正常：
+> `https://你的域名/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg`
+
+
 ```javascript
 // 原始 TMDB 图片
 https://image.tmdb.org/t/p/w500/poster.jpg
 
 // 通过代理访问
-https://your-worker.your-subdomain.workers.dev/t/p/w500/poster.jpg
+https://your-worker.your-subdomain.workers.dev/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg
 ```
 
 ### API 代理
@@ -150,7 +155,7 @@ https://your-worker.your-subdomain.workers.dev/3/movie/popular?key=your_tmdb_api
 
 ```javascript
 // 图片使用
-const imageUrl = 'https://your-worker.your-subdomain.workers.dev/t/p/w500/poster.jpg';
+const imageUrl = 'https://your-worker.your-subdomain.workers.dev/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg';
 document.getElementById('poster').src = imageUrl;
 
 // API 调用
@@ -301,7 +306,7 @@ testImage()
 curl https://your-worker.your-subdomain.workers.dev/health
 
 # 2. 图片代理测试
-curl -I https://your-worker.your-subdomain.workers.dev/t/p/w500/bcP7FtskwsNp1ikpMQJzDPjofP5.jpg
+curl -I https://your-worker.your-subdomain.workers.dev/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg
 
 # 3. API 代理测试（需要 API Key）
 curl -H "X-API-Key: your_api_key" \
