@@ -1,25 +1,10 @@
 # TMDB Proxy - Cloudflare Workers 版本 AI写的代码
 
-## 🆕 harden-mp-compat 分支更新说明
+## MoviePilot 快速说明
 
-本分支主要面向 MoviePilot 使用场景做兼容性和稳定性补强：
+MP交流群：https://t.me/moviepilot_official （我是 咚咚咚）
 
-- 放宽 User-Agent 拦截策略：`/3/*`、`/4/*`、`/t/p/*` 不再拦截 `python/curl/wget`，避免误伤 MoviePilot 后端请求。
-- 支持 TMDB v4 Token：可通过 `Authorization: Bearer <token>` 访问 `/3/*`、`/4/*` 和 `/admin/status`。
-- 扩展 API 代理范围：除 `/3/*` 外，新增 `/4/*` 代理。
-- 保留 `/3/configuration*` 图片域名重写逻辑，返回的 `images.base_url` / `secure_base_url` 会指向当前代理域名 `/t/p/`。
-- 图片代理响应不再手动透传 `Content-Length`，避免 Cloudflare Workers 图片优化或压缩后长度不一致。
-- API JSON 响应不再透传上游 `Content-Encoding`，避免 Worker 已读取文本后出现重复编码标记。
-- 修正 README 中 Cloudflare 一键部署链接，指向当前仓库。
-- 新增 MoviePilot 配置示例，说明 `TMDB_API_DOMAIN`、`TMDB_IMAGE_DOMAIN`、`TMDB_API_KEY` 和安全图片域名配置。
-
-建议测试：
-
-```bash
-curl https://你的域名/health
-curl "https://你的域名/3/configuration?api_key=你的TMDB_V3_KEY"
-curl -I "https://你的域名/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg"
-```
+部署后建议绑定自己的域名；Cloudflare 默认 workers.dev 预览域名在部分网络环境可能不可用。
 
 MoviePilot 推荐配置：
 
@@ -29,43 +14,45 @@ TMDB_IMAGE_DOMAIN=你的域名
 TMDB_API_KEY=你的TMDB_V3_KEY
 ```
 
+同时在 MP 的安全图片域名 / `SECURITY_IMAGE_DOMAINS` 中加入你的域名，保存后重启 MP。
 
-MP交流群：https://t.me/moviepilot_official （我是 咚咚咚）
+快速自测：
 
-部署好绑定自己域名后 必须绑定自己域名 必须绑定自己域名 必须绑定自己域名 CF给的预览域名自带墙！
-记得在路径 MOVIEPILOT v2 设定-系统-高级设置-添加上去 xx.org  与网络-安全域名里面 也需要添加上去保存-保存-重启MP应用
+```bash
+curl https://你的域名/health
+curl "https://你的域名/3/configuration?api_key=你的TMDB_V3_KEY"
+curl -I "https://你的域名/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg"
+```
 
-自定义api https://www.themoviedb.org/settings/api 自助注册申请
-API 密钥 MP环境上填写如下参数，有效提高TMDB请求率。
-- 'TMDB_API_KEY=xxx'
+已知有效图片示例：
+
+```text
+原始：https://image.tmdb.org/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg
+代理：https://你的域名/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg
+```
+
+> `poster.jpg` 只是占位符，不是 TMDB 真实图片路径，直接测试会返回 404。
+
+### 本分支补强点
+
+- 放宽 `/3/*`、`/4/*`、`/t/p/*` 的 User-Agent 拦截，避免误伤 MoviePilot 后端请求。
+- 支持 `Authorization: Bearer <token>`，兼容 TMDB v4 Token。
+- 新增 `/4/*` API 代理。
+- `/3/configuration*` 自动把图片域名重写到当前代理域名 `/t/p/`。
+- 图片代理不再手动透传 `Content-Length`，API JSON 不再透传上游 `Content-Encoding`。
+- 修正 Cloudflare 一键部署链接。
 
 <img width="1403" height="972" alt="image" src="https://github.com/user-attachments/assets/bd89a46f-806d-4626-980a-08b8ff38467c" />
 <img width="1378" height="1209" alt="image" src="https://github.com/user-attachments/assets/d194d295-93f5-487c-9efe-87d34f71f09b" />
-
-
-
-2025-11-18 MP更新认证资源版本2.4.3不然会报错 ,cf炸了会导致代理失效
-
-## 🆕 2025-11-16 更新
-
-- 兼容 **神医插件/Emby 识别** 场景：`server.js` 与 `worker.js` 新增 `rewriteTmdbConfigImages`，会自动把 `/3/configuration*` 中的 `images.base_url / secure_base_url` 重写为代理域名下的 `/t/p/`，搜索结果缩图将直接命中代理。
-- Node 版本放宽 `Cross-Origin-Resource-Policy`，Cloudflare Workers 也同步在 `corsHeaders` 里设置 `cross-origin`，保证前端可跨站加载图片，不再出现破图。
-- Cloudflare Workers 版本同样复用新的 CORS 头
-
 <img width="1177" height="620" alt="image" src="https://github.com/user-attachments/assets/c901411b-73b9-4c24-8026-79cd5040c900" />
-
-
-🎬 基于 Cloudflare Workers 的 TMDB (The Movie Database) 代理服务，提供图片和 API 代理功能，具备安全伪装、智能缓存和全球 CDN 加速。
 
 ## ✨ 功能特性
 
-- 🔒 **安全伪装**: 主页显示 404 页面，隐藏真实服务
-- 🖼️ **图片代理**: 支持 WebP/AVIF 格式，7天缓存
-- 🔌 **API 代理**: 智能缓存策略，5分钟到1小时不等
-- 🌍 **全球 CDN**: Cloudflare 全球节点加速
-- 🛡️ **安全防护**: API Key 保护，恶意爬虫检测
-- 📊 **性能优化**: 图片压缩、自适应加载
-- 🔍 **监控端点**: 健康检查和管理接口
+- API 代理：`/3/*`、`/4/*`
+- 图片代理：`/t/p/*`
+- `/3/configuration*` 图片域名自动重写
+- 健康检查：`/health`、`/ping`
+- 首页和无效请求伪装 404
 
 ## 🚀 快速部署
 
@@ -125,8 +112,8 @@ wrangler deploy
 
 
 ```javascript
-// 原始 TMDB 图片
-https://image.tmdb.org/t/p/w500/poster.jpg
+// 原始 TMDB 图片（真实存在的示例路径）
+https://image.tmdb.org/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg
 
 // 通过代理访问
 https://your-worker.your-subdomain.workers.dev/t/p/original/aWTfsoyRQNKxvI2EOLOEPKyxDqr.jpg
